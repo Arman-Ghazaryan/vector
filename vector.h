@@ -5,6 +5,9 @@ class vector
 {
 public:
     typedef T *iterator;
+    typedef const T *const_iterator;
+    typedef T *reverse_iterator;
+    typedef const T *const_reverse_iterator;
 
     vector();
     vector(int size);
@@ -23,6 +26,10 @@ public:
     void insert(vector<T> data, iterator pos);
     void insert(iterator pos, iterator secfpos, iterator seclpos);
 
+    iterator emplace(iterator pos, T data);
+    iterator emplace_back(T data);
+    iterator emplace_front(T data);
+
     void resize(int new_size);
 
     void pop_back();
@@ -33,6 +40,20 @@ public:
 
     iterator begin() { return arr; }
     iterator end() { return arr + size(); }
+    const_iterator cbegin()
+    {
+        const_iterator temp = arr;
+        return temp;
+    }
+    const_iterator cend()
+    {
+        const_iterator temp = arr + size();
+        return temp;
+    }
+    reverse_iterator rbegin() { return arr + size(); }
+    reverse_iterator rend() { return arr; }
+    const_reverse_iterator crbegin() { return cend(); }
+    const_reverse_iterator crend() { return cbegin(); }
 
     T &front() { return arr[0]; }
     T &back() { return arr[curr_end_pos - 1]; }
@@ -40,7 +61,7 @@ public:
     int size() { return curr_end_pos; }
 
     void operator=(vector<T> &data);
-    T &operator[](int ind);
+    T &operator[](const int ind);
 
 private:
     T *arr;
@@ -404,6 +425,33 @@ void vector<T>::insert(vector<T> data, iterator pos)
 }
 
 template <typename T>
+typename vector<T>::iterator vector<T>::emplace(iterator pos, T data)
+{
+    iterator temp = begin();
+    int i = 0;
+    for (; temp != pos; ++i)
+    {}
+
+    insert(data, i);
+
+    return arr + i;
+}
+
+template <typename T>
+typename vector<T>::iterator vector<T>::emplace_back(T data)
+{
+    push_back(data);
+    return arr + size();
+}
+
+template <typename T>
+typename vector<T>::iterator vector<T>::emplace_front(T data)
+{
+    push_front(data);
+    return arr;
+}
+
+template <typename T>
 void vector<T>::resize(int new_size)
 {
     if (new_size != curr_end_pos)
@@ -519,7 +567,7 @@ void vector<T>::operator=(vector<T> &data)
 }
 
 template <typename T>
-T &vector<T>::operator[](int ind)
+T &vector<T>::operator[](const int ind)
 {
     return arr[ind];
 }
