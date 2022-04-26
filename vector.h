@@ -49,16 +49,8 @@ public:
 
     iterator begin() { return arr; }
     iterator end() { return arr + size(); }
-    const_iterator cbegin()
-    {
-        const_iterator temp = arr;
-        return temp;
-    }
-    const_iterator cend()
-    {
-        const_iterator temp = arr + size();
-        return temp;
-    }
+    const_iterator cbegin() const { return arr; }
+    const_iterator cend() const { return arr + size(); }
     reverse_iterator rbegin() { return arr + size(); }
     reverse_iterator rend() { return arr; }
     const_reverse_iterator crbegin() { return cend(); }
