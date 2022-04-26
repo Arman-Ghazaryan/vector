@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 
 template <typename T>
 class vector
@@ -12,6 +13,7 @@ public:
     vector();
     vector(int size);
     vector(int size, T data);
+    vector(std::vector<T> const &data);
     vector(vector<T> &data);
 
     void push_back(T data);
@@ -20,18 +22,25 @@ public:
     void push_front(vector<T> data);
 
     void insert(T data, int pos);
-    void insert(T data, int pos, int count);
-    void insert(vector<T> data, int pos);
     void insert(T data, iterator pos);
-    void insert(vector<T> data, iterator pos);
+    void insert(T data, const_iterator pos);
+    void insert(T data, int pos, int count);
+    void insert(T data, iterator pos, int count);
+    void insert(T data, const_iterator pos, int count);
+    void insert(vector<T> &data, int pos);
+    void insert(vector<T> &data, iterator pos);
+    void insert(vector<T> &data, const_iterator pos);
     void insert(iterator pos, iterator secfpos, iterator seclpos);
+    void insert(const_iterator pos, iterator secfpos, iterator seclpos);
 
     iterator emplace(iterator pos, T data);
+    iterator emplace(const_iterator pos, T data);
     iterator emplace_back(T data);
     iterator emplace_front(T data);
 
     void resize(int new_size);
 
+    void clear();
     void pop_back();
     void pop_front();
     void erase(iterator pos);
@@ -56,9 +65,10 @@ public:
     const_reverse_iterator crend() { return cbegin(); }
 
     T &front() { return arr[0]; }
-    T &back() { return arr[curr_end_pos - 1]; }
+    T &back() { return arr[curr_end_pos]; }
 
     int size() { return curr_end_pos; }
+    bool empty() { return curr_end_pos; }
 
     void operator=(vector<T> &data);
     T &operator[](const int ind);
@@ -95,6 +105,26 @@ vector<T>::vector(int size, T data)
 
     for (int i = 0; i < size; ++i)
         arr[i] = data;
+}
+
+template <typename T>
+vector<T>::vector(std::vector<T> const &data)
+{
+    arr = new T[1];
+    loc_size = 1;
+    curr_end_pos = 0;
+    for (int i = 0; i < data.size(); ++i)
+        push_back(data[i]);
+}
+
+template <typename T>
+vector<T>::vector(vector<T> &data)
+{
+    arr = new T[1];
+    loc_size = 1;
+    curr_end_pos = 0;
+    for (int i = 0; i < data.size(); ++i)
+        push_back(data[i]);
 }
 
 template <typename T>
@@ -141,6 +171,17 @@ void vector<T>::push_front(T data)
         loc_size *= 2;
         arr = temp_;
     }
+    else
+    {
+        T *temp_ = new T[loc_size];
+
+        for (int i = 1; i <= loc_size; ++i)
+            temp_[i] = arr[i - 1];
+
+        delete arr;
+        loc_size *= 2;
+        arr = temp_;
+    }
 
     arr[0] = data;
     ++curr_end_pos;
@@ -158,8 +199,11 @@ void vector<T>::push_front(vector<T> data)
 template <typename T>
 void vector<T>::insert(T data, int pos)
 {
-
-    if (loc_size == curr_end_pos)
+    if (pos == curr_end_pos)
+        push_back(data);
+    else if (!pos)
+        push_front(data);
+    else if (loc_size == curr_end_pos)
     {
         T *temp = new T[2 * loc_size];
 
@@ -174,6 +218,7 @@ void vector<T>::insert(T data, int pos)
         delete arr;
         loc_size *= 2;
         arr = temp;
+        ++curr_end_pos;
     }
     else
     {
@@ -189,14 +234,20 @@ void vector<T>::insert(T data, int pos)
         delete arr;
         loc_size *= 2;
         arr = temp;
+        ++curr_end_pos;
     }
-    ++curr_end_pos;
 }
 
 template <typename T>
 void vector<T>::insert(T data, int pos, int count)
 {
-    if (loc_size == curr_end_pos)
+    if (pos == curr_end_pos)
+        for (int i = 0; i < count; ++i)
+            push_back(data);
+    else if (!pos)
+        for (int i = 0; i < count; ++i)
+            push_front(data);
+    else if (loc_size == curr_end_pos)
     {
         T *temp = new T[2 * loc_size + count];
 
@@ -206,14 +257,13 @@ void vector<T>::insert(T data, int pos, int count)
         for (int i = 0; i < count; ++i)
             temp[pos + i] = data;
 
-        pos += count;
-
         for (int i = pos; i < curr_end_pos + count; ++i)
-            temp[i + 1] = arr[i];
+            temp[i + count] = arr[i];
 
         delete arr;
         loc_size *= 2;
         arr = temp;
+        curr_end_pos += count;
     }
     else
     {
@@ -224,22 +274,26 @@ void vector<T>::insert(T data, int pos, int count)
         for (int i = 0; i < count; ++i)
             temp[pos + i] = data;
 
-        pos += count;
-
         for (int i = pos; i < curr_end_pos + count; ++i)
-            temp[i + 1] = arr[i];
+            temp[i + count] = arr[i];
 
         delete arr;
         loc_size *= 2;
         arr = temp;
+        curr_end_pos += count;
     }
-    curr_end_pos += count;
 }
 
 template <typename T>
-void vector<T>::insert(vector<T> data, int pos)
+void vector<T>::insert(vector<T> &data, int pos)
 {
-    if (loc_size == curr_end_pos)
+    if (pos == curr_end_pos)
+        for (int i = 0; i < data.size(); ++i)
+            push_back(data[i]);
+    else if (!pos)
+        for (int i = data.size() - 1; i >= 0; --i)
+            push_front(data[i]);
+    else if (loc_size == curr_end_pos)
     {
         T *temp = new T[2 * loc_size + data.size()];
 
@@ -249,14 +303,13 @@ void vector<T>::insert(vector<T> data, int pos)
         for (int i = 0; i < data.size(); ++i)
             temp[pos + i] = data[i];
 
-        pos += data.size();
-
         for (int i = pos; i < curr_end_pos + data.size(); ++i)
-            temp[i + 1] = arr[i];
+            temp[i + data.size()] = arr[i];
 
         delete arr;
         loc_size *= 2;
         arr = temp;
+        curr_end_pos += data.size();
     }
     else
     {
@@ -267,16 +320,332 @@ void vector<T>::insert(vector<T> data, int pos)
         for (int i = 0; i < data.size(); ++i)
             temp[pos + i] = data[i];
 
-        pos += data.size();
-
         for (int i = pos; i < curr_end_pos + data.size(); ++i)
-            temp[i + 1] = arr[i];
+            temp[i + data.size()] = arr[i];
 
         delete arr;
         loc_size *= 2;
         arr = temp;
+        curr_end_pos += data.size();
     }
-    curr_end_pos += data.size();
+}
+
+template <typename T>
+void vector<T>::insert(T data, iterator pos)
+{
+    iterator temp_it = begin();
+    int i_pos = 0, sec_size = 0;
+
+    for (; temp_it != pos; ++temp_it, ++i_pos)
+    {
+    }
+
+    if (i_pos == curr_end_pos)
+        push_back(data);
+    else if (!i_pos)
+        push_front(data);
+    else if (curr_end_pos == loc_size)
+    {
+        T *temp = new T[loc_size * 2];
+
+        for (int i = 0; i < i_pos; ++i)
+            temp[i] = arr[i];
+
+        temp[i_pos] = data;
+
+        for (int i = i_pos; i < curr_end_pos; ++i)
+            temp[i + 1] = arr[i];
+
+        delete arr;
+        arr = temp;
+        loc_size *= 2;
+        ++curr_end_pos;
+    }
+    else
+    {
+        T *temp = new T[loc_size];
+
+        for (int i = 0; i < i_pos; ++i)
+            temp[i] = arr[i];
+
+        temp[i_pos] = data;
+
+        for (int i = i_pos; i < curr_end_pos; ++i)
+            temp[i + 1] = arr[i];
+
+        delete arr;
+        arr = temp;
+        loc_size *= 2;
+        ++curr_end_pos;
+    }
+}
+
+template <typename T>
+void vector<T>::insert(T data, const_iterator pos)
+{
+    iterator temp_it = begin();
+    int i_pos = 0, sec_size = 0;
+
+    for (; temp_it != pos; ++temp_it, ++i_pos)
+    {
+    }
+
+    if (i_pos == curr_end_pos)
+        push_back(data);
+    else if (!i_pos)
+        push_front(data);
+    else if (curr_end_pos == loc_size)
+    {
+        T *temp = new T[loc_size * 2];
+
+        for (int i = 0; i < i_pos; ++i)
+            temp[i] = arr[i];
+
+        temp[i_pos] = data;
+
+        for (int i = i_pos; i < curr_end_pos; ++i)
+            temp[i + 1] = arr[i];
+
+        delete arr;
+        arr = temp;
+        loc_size *= 2;
+        ++curr_end_pos;
+    }
+    else
+    {
+        T *temp = new T[loc_size];
+
+        for (int i = 0; i < i_pos; ++i)
+            temp[i] = arr[i];
+
+        temp[i_pos] = data;
+
+        for (int i = i_pos; i < curr_end_pos; ++i)
+            temp[i + 1] = arr[i];
+
+        delete arr;
+        arr = temp;
+        loc_size *= 2;
+        ++curr_end_pos;
+    }
+}
+
+template <typename T>
+void vector<T>::insert(T data, iterator pos, int count)
+{
+    iterator temp_it = begin();
+    int i_pos = 0, sec_size = 0;
+
+    for (; temp_it != pos; ++temp_it, ++i_pos)
+    {
+    }
+
+    if (i_pos == curr_end_pos)
+        for (int i = 0; i < count; ++i)
+            push_back(data);
+    else if (!i_pos)
+        for (int i = 0; i < count; ++i)
+            push_front(data);
+    else if (curr_end_pos + count >= loc_size)
+    {
+        T *temp = new T[loc_size * 2 + count];
+
+        for (int i = 0; i < i_pos; ++i)
+            temp[i] = arr[i];
+
+        for (int i = 0; i < count; ++i)
+            temp[i_pos + i] = data;
+
+        for (int i = i_pos; i < curr_end_pos; ++i)
+            temp[i + count] = arr[i];
+
+        delete arr;
+        arr = temp;
+        loc_size *= 2;
+        curr_end_pos += count;
+    }
+    else
+    {
+        T *temp = new T[loc_size];
+
+        for (int i = 0; i < i_pos; ++i)
+            temp[i] = arr[i];
+
+        for (int i = 0; i < count; ++i)
+            temp[i_pos + i] = data;
+
+        for (int i = i_pos; i < curr_end_pos; ++i)
+            temp[i + 1] = arr[i];
+
+        delete arr;
+        arr = temp;
+        loc_size *= 2;
+        curr_end_pos += count;
+    }
+}
+
+template <typename T>
+void vector<T>::insert(T data, const_iterator pos, int count)
+{
+    iterator temp_it = begin();
+    int i_pos = 0, sec_size = 0;
+
+    for (; temp_it != pos; ++temp_it, ++i_pos)
+    {
+    }
+
+    if (i_pos == curr_end_pos)
+        for (int i = 0; i < count; ++i)
+            push_back(data);
+    else if (!i_pos)
+        for (int i = 0; i < count; ++i)
+            push_front(data);
+    else if (curr_end_pos + count >= loc_size)
+    {
+        T *temp = new T[loc_size * 2 + count];
+
+        for (int i = 0; i < i_pos; ++i)
+            temp[i] = arr[i];
+
+        for (int i = 0; i < count; ++i)
+            temp[i_pos + i] = data;
+
+        for (int i = i_pos; i < curr_end_pos; ++i)
+            temp[i + count] = arr[i];
+
+        delete arr;
+        arr = temp;
+        loc_size *= 2;
+        curr_end_pos += count;
+    }
+    else
+    {
+        T *temp = new T[loc_size];
+
+        for (int i = 0; i < i_pos; ++i)
+            temp[i] = arr[i];
+
+        for (int i = 0; i < count; ++i)
+            temp[i_pos + i] = data;
+
+        for (int i = i_pos; i < curr_end_pos; ++i)
+            temp[i + 1] = arr[i];
+
+        delete arr;
+        arr = temp;
+        loc_size *= 2;
+        curr_end_pos += count;
+    }
+}
+
+template <typename T>
+void vector<T>::insert(vector<T> &data, iterator pos)
+{
+    iterator temp_it = begin();
+    int i_pos = 0, sec_size = 0;
+
+    for (; temp_it != pos; ++temp_it, ++i_pos)
+    {
+    }
+
+    if (i_pos == curr_end_pos)
+        for (int i = 0; i < data.size(); ++i)
+            push_back(data[i]);
+    else if (!i_pos)
+        for (int i = data.size() - 1; i >= 0; --i)
+            push_front(data[i]);
+    else if (curr_end_pos + data.size() >= loc_size)
+    {
+        while (curr_end_pos + data.size() >= loc_size)
+            loc_size *= 2;
+
+        T *temp = new T[loc_size];
+
+        for (int i = 0; i < i_pos; ++i)
+            temp[i] = arr[i];
+
+        for (int i = 0; i < data.size(); ++i)
+            temp[i_pos + i] = data[i];
+
+        for (int i = i_pos; i < curr_end_pos; ++i)
+            temp[i + data.size()] = arr[i];
+
+        delete arr;
+        arr = temp;
+        curr_end_pos += data.size();
+    }
+    else
+    {
+        T *temp = new T[loc_size];
+
+        for (int i = 0; i < i_pos; ++i)
+            temp[i] = arr[i];
+
+        for (int i = 0; i < data.size(); ++i)
+            temp[i_pos + i] = data[i];
+
+        for (int i = i_pos; i < curr_end_pos; ++i)
+            temp[i + data.size()] = arr[i];
+
+        delete arr;
+        arr = temp;
+        curr_end_pos += data.size();
+    }
+}
+
+template <typename T>
+void vector<T>::insert(vector<T> &data, const_iterator pos)
+{
+    iterator temp_it = begin();
+    int i_pos = 0, sec_size = 0;
+
+    for (; temp_it != pos; ++temp_it, ++i_pos)
+    {
+    }
+
+    if (i_pos == curr_end_pos)
+        for (int i = 0; i < data.size(); ++i)
+            push_back(data[i]);
+    else if (!i_pos)
+        for (int i = 0; i < data.size(); ++i)
+            push_front(data[i]);
+    else if (curr_end_pos + data.size() >= loc_size)
+    {
+        while (curr_end_pos + data.size() >= loc_size)
+            loc_size *= 2;
+
+        T *temp = new T[loc_size];
+
+        for (int i = 0; i < i_pos; ++i)
+            temp[i] = arr[i];
+
+        for (int i = 0; i < data.size(); ++i)
+            temp[i_pos + i] = data[i];
+
+        for (int i = i_pos; i < curr_end_pos; ++i)
+            temp[i + data.size()] = arr[i];
+
+        delete arr;
+        arr = temp;
+        curr_end_pos += data.size();
+    }
+    else
+    {
+        T *temp = new T[loc_size];
+
+        for (int i = 0; i < i_pos; ++i)
+            temp[i] = arr[i];
+
+        for (int i = 0; i < data.size(); ++i)
+            temp[i_pos + i] = data[i];
+
+        for (int i = i_pos; i < curr_end_pos; ++i)
+            temp[i + data.size()] = arr[i];
+
+        delete arr;
+        arr = temp;
+        curr_end_pos += data.size();
+    }
 }
 
 template <typename T>
@@ -297,9 +666,26 @@ void vector<T>::insert(iterator pos, iterator secfpos, iterator seclpos)
 
     temp_it = secfpos;
 
-    if (curr_end_pos + sec_size >= loc_size)
+    if (i_pos == curr_end_pos)
     {
-        T temp = new T[loc_size * 2];
+        for (int i = 0; i < sec_size; ++i)
+        {
+            push_back(*temp_it);
+            ++temp_it;
+        }
+    }
+    else if (!i_pos)
+    {
+        temp_it = seclpos - 1;
+        for (int i = 0; i < sec_size; ++i)
+        {
+            push_front(*temp_it);
+            --temp_it;
+        }
+    }
+    else if (curr_end_pos + sec_size >= loc_size)
+    {
+        T *temp = new T[loc_size * 2];
 
         for (int i = 0; i < i_pos; ++i)
             temp[i] = arr[i];
@@ -330,7 +716,7 @@ void vector<T>::insert(iterator pos, iterator secfpos, iterator seclpos)
 }
 
 template <typename T>
-void vector<T>::insert(T data, iterator pos)
+void vector<T>::insert(const_iterator pos, iterator secfpos, iterator seclpos)
 {
     iterator temp_it = begin();
     int i_pos = 0, sec_size = 0;
@@ -339,88 +725,60 @@ void vector<T>::insert(T data, iterator pos)
     {
     }
 
-    if (curr_end_pos == loc_size)
+    temp_it = secfpos;
+
+    for (; temp_it != seclpos; ++temp_it, ++sec_size)
     {
-        T temp = new T[loc_size * 2];
+    }
+
+    temp_it = secfpos;
+
+    if (i_pos == curr_end_pos)
+    {
+        for (int i = 0; i < sec_size; ++i)
+        {
+            push_back(*temp_it);
+            ++temp_it;
+        }
+    }
+    else if (!i_pos)
+    {
+        temp_it = seclpos - 1;
+        for (int i = 0; i < sec_size; ++i)
+        {
+            push_front(*temp_it);
+            --temp_it;
+        }
+    }
+    else if (curr_end_pos + sec_size >= loc_size)
+    {
+        T *temp = new T[loc_size * 2];
 
         for (int i = 0; i < i_pos; ++i)
             temp[i] = arr[i];
 
-        temp[i_pos] = data;
+        for (int i = i_pos; i < i_pos + sec_size; ++i)
+        {
+            temp[i] = *temp_it;
+            ++temp_it;
+        }
 
         for (int i = i_pos; i < curr_end_pos; ++i)
-            temp[i + 1] = arr[i];
+            temp[i + sec_size] = arr[i];
 
         delete arr;
         arr = temp;
         loc_size *= 2;
-        ++curr_end_pos;
+        curr_end_pos += sec_size;
     }
     else
     {
-        T temp = new T[loc_size];
-
-        for (int i = 0; i < i_pos; ++i)
-            temp[i] = arr[i];
-
-        temp[i_pos] = data;
-
-        for (int i = i_pos; i < curr_end_pos; ++i)
-            temp[i + 1] = arr[i];
-
-        delete arr;
-        arr = temp;
-        loc_size *= 2;
-        ++curr_end_pos;
-    }
-}
-
-template <typename T>
-void vector<T>::insert(vector<T> data, iterator pos)
-{
-    iterator temp_it = begin();
-    int i_pos = 0, sec_size = 0;
-
-    for (; temp_it != pos; ++temp_it, ++i_pos)
-    {
-    }
-
-    if (curr_end_pos + data.size() >= loc_size)
-    {
-        while (curr_end_pos + data.size() >= loc_size)
-            loc_size *= 2;
-
-        T temp = new T[loc_size];
-
-        for (int i = 0; i < i_pos; ++i)
-            temp[i] = arr[i];
-
-        for (int i = 0; i < data.size(); ++i)
-            temp[i_pos + i] = data[i];
-
-        for (int i = i_pos; i < curr_end_pos; ++i)
-            temp[i + data.size] = arr[i];
-
-        delete arr;
-        arr = temp;
-        curr_end_pos += data.size();
-    }
-    else
-    {
-        T temp = new T[loc_size];
-
-        for (int i = 0; i < i_pos; ++i)
-            temp[i] = arr[i];
-
-        for (int i = 0; i < data.size(); ++i)
-            temp[i_pos + i] = data[i];
-
-        for (int i = i_pos; i < curr_end_pos; ++i)
-            temp[i + data.size] = arr[i];
-
-        delete arr;
-        arr = temp;
-        curr_end_pos += data.size();
+        for (int i = 0; i < sec_size; ++i)
+        {
+            arr[curr_end_pos] = *temp_it;
+            ++temp_it;
+            ++curr_end_pos;
+        }
     }
 }
 
@@ -430,11 +788,37 @@ typename vector<T>::iterator vector<T>::emplace(iterator pos, T data)
     iterator temp = begin();
     int i = 0;
     for (; temp != pos; ++i)
-    {}
+    {
+    }
 
     insert(data, i);
 
     return arr + i;
+}
+
+template <typename T>
+typename vector<T>::iterator vector<T>::emplace(const_iterator pos, T data)
+{
+    if (pos == begin())
+    {
+        return emplace_front(data);
+    }
+    else if (pos == end())
+    {
+        return emplace_back(data);
+    }
+    else
+    {
+        iterator temp = begin();
+        int i = 0;
+        for (; temp != pos; ++i, ++temp)
+        {
+        }
+
+        insert(data, i);
+
+        return arr + i;
+    }
 }
 
 template <typename T>
@@ -489,15 +873,15 @@ void vector<T>::resize(int new_size)
 template <typename T>
 void vector<T>::pop_back()
 {
-    resize(curr_end_pos - 1);
+    resize(curr_end_pos);
 }
 
 template <typename T>
 void vector<T>::pop_front()
 {
-    T *temp = new T[curr_end_pos - 1];
+    T *temp = new T[curr_end_pos];
 
-    for (int i = 0; i < curr_end_pos - 1; ++i)
+    for (int i = 0; i < curr_end_pos; ++i)
         temp[i] = arr[i + 1];
 
     delete arr;
@@ -545,12 +929,19 @@ void vector<T>::removeAt(int pos)
     for (int i = 0; i < pos; ++i)
         temp[i] = arr[i];
 
-    for (int i = pos; i < curr_end_pos - 1; ++i)
+    for (int i = pos; i < curr_end_pos; ++i)
         temp[i] = arr[i + 1];
 
     delete arr;
     arr = temp;
     --curr_end_pos;
+}
+
+template <typename T>
+void vector<T>::clear()
+{
+    while (curr_end_pos)
+        pop_back();
 }
 
 template <typename T>
