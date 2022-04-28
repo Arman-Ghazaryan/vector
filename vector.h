@@ -58,18 +58,20 @@ public:
     const_reverse_iterator crbegin() { return cend(); }
     const_reverse_iterator crend() { return cbegin(); }
 
+    T &at(int ind) { return arr[ind]; }
     T &front() { return arr[0]; }
     T &back() { return arr[curr_end_pos - 1]; }
+    const T &at(int ind) const { return arr[ind]; }
     T &front() const { return arr[0]; }
     T &back() const { return arr[curr_end_pos - 1]; }
 
     int size() { return curr_end_pos; }
     bool empty() { return curr_end_pos; }
-    int size() const{ return curr_end_pos; }
-    bool empty() const{ return curr_end_pos; }
+    int size() const { return curr_end_pos; }
+    bool empty() const { return curr_end_pos; }
 
     void operator=(vector<T> &data);
-    T &operator[](const int ind);
+    T &operator[](const int ind) { return arr[ind]; }
 
 private:
     T *arr;
@@ -953,10 +955,4 @@ void vector<T>::operator=(vector<T> &data)
 
     curr_end_pos = data.size();
     loc_size = data.size();
-}
-
-template <typename T>
-T &vector<T>::operator[](const int ind)
-{
-    return arr[ind];
 }
