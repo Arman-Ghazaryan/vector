@@ -49,6 +49,8 @@ public:
 
     iterator begin() { return arr; }
     iterator end() { return arr + size(); }
+    iterator begin() const { return arr; }
+    iterator end() const { return arr + size(); }
     const_iterator cbegin() const { return arr; }
     const_iterator cend() const { return arr + size(); }
     reverse_iterator rbegin() { return arr + size(); }
@@ -57,10 +59,14 @@ public:
     const_reverse_iterator crend() { return cbegin(); }
 
     T &front() { return arr[0]; }
-    T &back() { return arr[curr_end_pos]; }
+    T &back() { return arr[curr_end_pos - 1]; }
+    T &front() const { return arr[0]; }
+    T &back() const { return arr[curr_end_pos - 1]; }
 
     int size() { return curr_end_pos; }
     bool empty() { return curr_end_pos; }
+    int size() const{ return curr_end_pos; }
+    bool empty() const{ return curr_end_pos; }
 
     void operator=(vector<T> &data);
     T &operator[](const int ind);
