@@ -41,7 +41,6 @@ public:
 
     void assign(int count, T data);
     void assign(iterator fpos, iterator lpos);
-    void assign(const_iterator fpos, const_iterator lpos);
 
     void resize(int new_size);
     void sort(std::string str);
@@ -253,7 +252,7 @@ void vector<T>::insert(T data, int pos, int count)
     else if (!pos)
         for (int i = 0; i < count; ++i)
             push_front(data);
-    else if (loc_size == curr_end_pos)
+    else if (loc_size <= curr_end_pos + count)
     {
         T *temp = new T[2 * loc_size + count];
 
@@ -267,13 +266,13 @@ void vector<T>::insert(T data, int pos, int count)
             temp[i + count] = arr[i];
 
         delete arr;
-        loc_size *= 2;
+        loc_size = 2 * loc_size + count;
         arr = temp;
         curr_end_pos += count;
     }
     else
     {
-        T *temp = new T[curr_end_pos + 1];
+        T *temp = new T[curr_end_pos + count];
         for (int i = 0; i < pos; ++i)
             temp[i] = arr[i];
 
@@ -284,7 +283,7 @@ void vector<T>::insert(T data, int pos, int count)
             temp[i + count] = arr[i];
 
         delete arr;
-        loc_size *= 2;
+        loc_size = curr_end_pos + count;
         arr = temp;
         curr_end_pos += count;
     }
@@ -299,7 +298,7 @@ void vector<T>::insert(vector<T> &data, int pos)
     else if (!pos)
         for (int i = data.size() - 1; i >= 0; --i)
             push_front(data[i]);
-    else if (loc_size == curr_end_pos)
+    else if (loc_size <= curr_end_pos + data.size())
     {
         T *temp = new T[2 * loc_size + data.size()];
 
@@ -313,13 +312,13 @@ void vector<T>::insert(vector<T> &data, int pos)
             temp[i + data.size()] = arr[i];
 
         delete arr;
-        loc_size *= 2;
+        loc_size = 2 * loc_size + data.size();
         arr = temp;
         curr_end_pos += data.size();
     }
     else
     {
-        T *temp = new T[curr_end_pos + 1];
+        T *temp = new T[curr_end_pos + data.size()];
         for (int i = 0; i < pos; ++i)
             temp[i] = arr[i];
 
@@ -330,7 +329,7 @@ void vector<T>::insert(vector<T> &data, int pos)
             temp[i + data.size()] = arr[i];
 
         delete arr;
-        loc_size *= 2;
+        loc_size = curr_end_pos + data.size();
         arr = temp;
         curr_end_pos += data.size();
     }
@@ -467,7 +466,7 @@ void vector<T>::insert(T data, iterator pos, int count)
 
         delete arr;
         arr = temp;
-        loc_size *= 2;
+        loc_size = loc_size * 2 + count;
         curr_end_pos += count;
     }
     else
@@ -481,11 +480,10 @@ void vector<T>::insert(T data, iterator pos, int count)
             temp[i_pos + i] = data;
 
         for (int i = i_pos; i < curr_end_pos; ++i)
-            temp[i + 1] = arr[i];
+            temp[i + count] = arr[i];
 
         delete arr;
         arr = temp;
-        loc_size *= 2;
         curr_end_pos += count;
     }
 }
@@ -791,15 +789,26 @@ void vector<T>::insert(const_iterator pos, iterator secfpos, iterator seclpos)
 template <typename T>
 typename vector<T>::iterator vector<T>::emplace(iterator pos, T data)
 {
-    iterator temp = begin();
-    int i = 0;
-    for (; temp != pos; ++i)
+    if (pos == begin())
     {
+        return emplace_front(data);
     }
+    else if (pos == end())
+    {
+        return emplace_back(data);
+    }
+    else
+    {
+        iterator temp = begin();
+        int i = 0;
+        for (; temp != pos; ++i, ++temp)
+        {
+        }
 
-    insert(data, i);
+        insert(data, i);
 
-    return arr + i;
+        return arr + i;
+    }
 }
 
 template <typename T>
@@ -841,20 +850,20 @@ typename vector<T>::iterator vector<T>::emplace_front(T data)
     return arr;
 }
 
-template<typename T>
+template <typename T>
 void vector<T>::assign(int count, T data)
 {
     delete arr;
     arr = new T[count];
 
-    for(int i = 0; i < count; ++i)
+    for (int i = 0; i < count; ++i)
         arr[i] = data;
-    
+
     loc_size = count;
     curr_end_pos = count;
 }
 
-template<typename T>
+template <typename T>
 void vector<T>::assign(iterator fpos, iterator lpos)
 {
     delete arr;
@@ -862,22 +871,8 @@ void vector<T>::assign(iterator fpos, iterator lpos)
     loc_size = 1;
     curr_end_pos = 0;
 
-    for(; fpos != lpos; ++fpos)
+    for (; fpos != lpos; ++fpos)
         push_back(*fpos);
-}
-
-template<typename T>
-void vector<T>::assign(const_iterator fpos, const_iterator lpos)
-{
-    delete arr;
-    arr = new T[1];
-    loc_size = 1;
-    curr_end_pos = 0;
-    iterator frstpos = fpos;
-    iterator lstpos = lpos;
-
-    for(; frstpos != lstpos; ++frstpos)
-        push_back(*frstpos);
 }
 
 template <typename T>
@@ -889,18 +884,13 @@ void vector<T>::resize(int new_size)
         {
             T *temp = new T[new_size];
 
-            for (int i = 0; i < loc_size; ++i)
+            for (int i = 0; i < curr_end_pos; ++i)
                 temp[i] = arr[i];
 
             delete arr;
-            loc_size = new_size;
             arr = temp;
         }
-        else if (new_size > curr_end_pos && new_size < loc_size)
-        {
-            curr_end_pos = new_size;
-        }
-        else
+        else if (new_size < curr_end_pos)
         {
             T *temp = new T[new_size];
 
@@ -908,10 +898,10 @@ void vector<T>::resize(int new_size)
                 temp[i] = arr[i];
 
             delete arr;
-            loc_size = new_size;
-            curr_end_pos = new_size - 1;
             arr = temp;
         }
+        loc_size = new_size;
+        curr_end_pos = new_size;
     }
 }
 
