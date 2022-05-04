@@ -39,6 +39,10 @@ public:
     iterator emplace_back(T data);
     iterator emplace_front(T data);
 
+    void assign(int count, T data);
+    void assign(iterator fpos, iterator lpos);
+    void assign(const_iterator fpos, const_iterator lpos);
+
     void resize(int new_size);
     void sort(std::string str);
 
@@ -835,6 +839,45 @@ typename vector<T>::iterator vector<T>::emplace_front(T data)
 {
     push_front(data);
     return arr;
+}
+
+template<typename T>
+void vector<T>::assign(int count, T data)
+{
+    delete arr;
+    arr = new T[count];
+
+    for(int i = 0; i < count; ++i)
+        arr[i] = data;
+    
+    loc_size = count;
+    curr_end_pos = count;
+}
+
+template<typename T>
+void vector<T>::assign(iterator fpos, iterator lpos)
+{
+    delete arr;
+    arr = new T[1];
+    loc_size = 1;
+    curr_end_pos = 0;
+
+    for(; fpos != lpos; ++fpos)
+        push_back(*fpos);
+}
+
+template<typename T>
+void vector<T>::assign(const_iterator fpos, const_iterator lpos)
+{
+    delete arr;
+    arr = new T[1];
+    loc_size = 1;
+    curr_end_pos = 0;
+    iterator frstpos = fpos;
+    iterator lstpos = lpos;
+
+    for(; frstpos != lstpos; ++frstpos)
+        push_back(*frstpos);
 }
 
 template <typename T>
