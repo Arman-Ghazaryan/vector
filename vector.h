@@ -1,6 +1,5 @@
 #pragma once
 #include <vector>
-#include <string>
 
 template <typename T>
 class vector
@@ -43,7 +42,6 @@ public:
     void assign(iterator fpos, iterator lpos);
 
     void resize(int new_size);
-    void sort(std::string str);
 
     void clear();
     void pop_back();
@@ -906,42 +904,6 @@ void vector<T>::resize(int new_size)
         }
         loc_size = new_size;
         curr_end_pos = new_size;
-    }
-}
-
-template <typename T>
-void vector<T>::sort(std::string str)
-{
-    T temp;
-    if (str == "GRT")
-    {
-        for (int i = 0; i < curr_end_pos - 1; ++i)
-        {
-            for (int j = 0; j < curr_end_pos - i - 1; ++j)
-            {
-                if (arr[0 + j] > arr[1 + j])
-                {
-                    temp = arr[0 + j];
-                    arr[0 + j] = arr[1 + j];
-                    arr[1 + j] = temp;
-                }
-            }
-        }
-    }
-    else if (str == "SML")
-    {
-        for (int i = 0; i < curr_end_pos - 1; ++i)
-        {
-            for (int j = 0; j < curr_end_pos - i - 1; ++j)
-            {
-                if (arr[0 + j] < arr[1 + j])
-                {
-                    temp = arr[0 + j];
-                    arr[0 + j] = arr[1 + j];
-                    arr[1 + j] = temp;
-                }
-            }
-        }
     }
 }
 
