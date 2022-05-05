@@ -66,6 +66,7 @@ public:
     T &at(int ind) { return arr[ind]; }
     T &front() { return arr[0]; }
     T &back() { return arr[curr_end_pos - 1]; }
+    
     const T &at(int ind) const { return arr[ind]; }
     T &front() const { return arr[0]; }
     T &back() const { return arr[curr_end_pos - 1]; }
@@ -887,6 +888,9 @@ void vector<T>::resize(int new_size)
             for (int i = 0; i < curr_end_pos; ++i)
                 temp[i] = arr[i];
 
+            for (int i = curr_end_pos; i < new_size; ++i)
+                temp[i] = 0;
+
             delete arr;
             arr = temp;
         }
@@ -930,11 +934,11 @@ void vector<T>::sort(std::string str)
         {
             for (int j = 0; j < curr_end_pos - i - 1; ++j)
             {
-                if (arr[curr_end_pos - j] < arr[curr_end_pos - 1 - j])
+                if (arr[0 + j] < arr[1 + j])
                 {
-                    temp = arr[curr_end_pos - j];
-                    arr[curr_end_pos - j] = arr[curr_end_pos - j - 1];
-                    arr[curr_end_pos - j - 1] = temp;
+                    temp = arr[0 + j];
+                    arr[0 + j] = arr[1 + j];
+                    arr[1 + j] = temp;
                 }
             }
         }
@@ -944,19 +948,19 @@ void vector<T>::sort(std::string str)
 template <typename T>
 void vector<T>::pop_back()
 {
-    resize(curr_end_pos);
+    resize(curr_end_pos - 1);
 }
 
 template <typename T>
 void vector<T>::pop_front()
 {
-    T *temp = new T[curr_end_pos];
+    T *temp = new T[curr_end_pos - 1];
 
-    for (int i = 0; i < curr_end_pos; ++i)
+    for (int i = 0; i < curr_end_pos - 1; ++i)
         temp[i] = arr[i + 1];
 
     delete arr;
-    curr_end_pos -= 1;
+    --curr_end_pos;
     loc_size = curr_end_pos;
     arr = temp;
 }
@@ -964,32 +968,70 @@ void vector<T>::pop_front()
 template <typename T>
 void vector<T>::erase(iterator pos)
 {
-    iterator temp_it = begin();
-    int i_pos = 0;
+    if (pos == begin())
+        pop_front();
+    else if (pos == end())
+        pop_back();
+    else
+    {
+        iterator temp_it = begin();
+        int i_pos = 0;
 
-    while (temp_it != pos)
-        ++i_pos;
-
-    removeAt(i_pos);
+        while (temp_it != pos)
+        {
+            ++i_pos;
+            ++temp_it;
+        }
+        removeAt(i_pos);
+    }
 }
 
 template <typename T>
 void vector<T>::erase(iterator fpos, iterator lpos)
 {
-    iterator temp_it = begin();
-    int pos = 0, t_size = 0;
-
-    while (temp_it != fpos)
-        ++pos;
-
-    while (temp_it != lpos)
+    if (fpos == begin() && lpos == end())
+        clear();
+    else
     {
-        ++t_size;
-        ++temp_it;
-    }
+        iterator temp_it = fpos;
+        int t_size = 0;
 
-    for (int i = 0; i < t_size; ++i)
-        removeAt(pos);
+        while (temp_it != lpos)
+        {
+            ++t_size;
+            ++temp_it;
+        }
+
+        if (fpos == begin())
+        {
+            while (t_size >= 0)
+            {
+                pop_front();
+                --t_size;
+            }
+        }
+        else if (lpos == end())
+        {
+            while (t_size >= 0)
+            {
+                pop_back();
+                --t_size;
+            }
+        }
+        else
+        {
+            int pos = 0;
+            temp_it = begin();
+            while (temp_it != fpos)
+            {
+                ++pos;
+                ++temp_it;
+            }
+
+            for (int i = 0; i < t_size; ++i)
+                removeAt(pos);
+        }
+    }
 }
 
 template <typename T>
@@ -1019,7 +1061,7 @@ template <typename T>
 void vector<T>::operator=(vector<T> &data)
 {
     delete arr;
-    arr = new T[data.size];
+    arr = new T[data.size()];
 
     for (int i = 0; i < data.size(); ++i)
         arr[i] = data[i];
