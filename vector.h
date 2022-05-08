@@ -16,6 +16,7 @@ public:
     vector(int size, T data);
     vector(std::vector<T> const &data);
     vector(vector<T> &data);
+    ~vector();
 
     void push_back(T data);
     void push_back(vector<T> data);
@@ -77,20 +78,24 @@ public:
 
     void operator=(vector<T> &data);
     T &operator[](const int ind) { return array_m[ind]; }
-    T *reserve(int Size);
 
 private:
     T *array_m;
-
     int loc_size;
     int curr_end_pos;
-
+    T *reserve_(int Size);
 };
+
+template <typename T>
+vector<T>::~vector()
+{
+    clear();
+}
 
 template <typename T>
 vector<T>::vector()
 {
-    array_m = reserve(1);
+    array_m = reserve_(1);
     loc_size = 1;
     curr_end_pos = 0;
 }
@@ -98,7 +103,7 @@ vector<T>::vector()
 template <typename T>
 vector<T>::vector(int size)
 {
-    array_m = reserve(size);
+    array_m = reserve_(size);
     loc_size = size;
     curr_end_pos = size;
 }
@@ -106,7 +111,7 @@ vector<T>::vector(int size)
 template <typename T>
 vector<T>::vector(int size, T data)
 {
-    array_m = reserve(size);
+    array_m = reserve_(size);
     loc_size = size;
     curr_end_pos = size;
 
@@ -117,7 +122,7 @@ vector<T>::vector(int size, T data)
 template <typename T>
 vector<T>::vector(std::vector<T> const &data)
 {
-    array_m = reserve(1);
+    array_m = reserve_(1);
     loc_size = 1;
     curr_end_pos = 0;
     for (int i = 0; i < data.size(); ++i)
@@ -127,7 +132,7 @@ vector<T>::vector(std::vector<T> const &data)
 template <typename T>
 vector<T>::vector(vector<T> &data)
 {
-    array_m = reserve(1);
+    array_m = reserve_(1);
     loc_size = 1;
     curr_end_pos = 0;
     for (int i = 0; i < data.size(); ++i)
@@ -139,7 +144,7 @@ void vector<T>::push_back(T data)
 {
     if (loc_size == curr_end_pos)
     {
-        T *temp = reserve(loc_size * 2);
+        T *temp = reserve_(loc_size * 2);
 
         for (int i = 0; i < curr_end_pos; ++i)
             temp[i] = array_m[i];
@@ -167,7 +172,7 @@ void vector<T>::push_front(T data)
 {
     if (loc_size == curr_end_pos)
     {
-        T *temp_ = reserve(loc_size * 2);
+        T *temp_ = reserve_(loc_size * 2);
 
         for (int i = 1; i <= curr_end_pos; ++i)
             temp_[i] = array_m[i - 1];
@@ -178,7 +183,7 @@ void vector<T>::push_front(T data)
     }
     else
     {
-        T *temp_ = reserve(loc_size);
+        T *temp_ = reserve_(loc_size);
 
         for (int i = 1; i <= curr_end_pos; ++i)
             temp_[i] = array_m[i - 1];
@@ -209,7 +214,7 @@ void vector<T>::insert(T data, int pos)
         push_front(data);
     else if (loc_size == curr_end_pos)
     {
-        T *temp = reserve(loc_size * 2);
+        T *temp = reserve_(loc_size * 2);
 
         for (int i = 0; i < pos; ++i)
             temp[i] = array_m[i];
@@ -226,7 +231,7 @@ void vector<T>::insert(T data, int pos)
     }
     else
     {
-        T *temp = reserve(curr_end_pos + 1);
+        T *temp = reserve_(curr_end_pos + 1);
         for (int i = 0; i < pos; ++i)
             temp[i] = array_m[i];
 
@@ -253,7 +258,7 @@ void vector<T>::insert(T data, int pos, int count)
             push_front(data);
     else if (loc_size <= curr_end_pos + count)
     {
-        T *temp = reserve(loc_size * 2 + count);
+        T *temp = reserve_(loc_size * 2 + count);
 
         for (int i = 0; i < pos; ++i)
             temp[i] = array_m[i];
@@ -271,7 +276,7 @@ void vector<T>::insert(T data, int pos, int count)
     }
     else
     {
-        T *temp = reserve(curr_end_pos + count);
+        T *temp = reserve_(curr_end_pos + count);
         for (int i = 0; i < pos; ++i)
             temp[i] = array_m[i];
 
@@ -299,7 +304,7 @@ void vector<T>::insert(vector<T> &data, int pos)
             push_front(data[i]);
     else if (loc_size <= curr_end_pos + data.size())
     {
-        T *temp = reserve(loc_size * 2 + data.size());
+        T *temp = reserve_(loc_size * 2 + data.size());
 
         for (int i = 0; i < pos; ++i)
             temp[i] = array_m[i];
@@ -307,7 +312,7 @@ void vector<T>::insert(vector<T> &data, int pos)
         for (int i = 0; i < data.size(); ++i)
             temp[pos + i] = data[i];
 
-        for (int i = pos; i < curr_end_pos ; ++i)
+        for (int i = pos; i < curr_end_pos; ++i)
             temp[i + data.size()] = array_m[i];
 
         free(array_m);
@@ -317,7 +322,7 @@ void vector<T>::insert(vector<T> &data, int pos)
     }
     else
     {
-        T *temp = reserve(curr_end_pos + data.size());
+        T *temp = reserve_(curr_end_pos + data.size());
         for (int i = 0; i < pos; ++i)
             temp[i] = array_m[i];
 
@@ -350,7 +355,7 @@ void vector<T>::insert(T data, iterator pos)
         push_front(data);
     else if (curr_end_pos == loc_size)
     {
-        T *temp = reserve(loc_size * 2);
+        T *temp = reserve_(loc_size * 2);
 
         for (int i = 0; i < i_pos; ++i)
             temp[i] = array_m[i];
@@ -367,7 +372,7 @@ void vector<T>::insert(T data, iterator pos)
     }
     else
     {
-        T *temp = reserve(loc_size);
+        T *temp = reserve_(loc_size);
 
         for (int i = 0; i < i_pos; ++i)
             temp[i] = array_m[i];
@@ -400,7 +405,7 @@ void vector<T>::insert(T data, const_iterator pos)
         push_front(data);
     else if (curr_end_pos == loc_size)
     {
-        T *temp = reserve(loc_size * 2);
+        T *temp = reserve_(loc_size * 2);
 
         for (int i = 0; i < i_pos; ++i)
             temp[i] = array_m[i];
@@ -417,7 +422,7 @@ void vector<T>::insert(T data, const_iterator pos)
     }
     else
     {
-        T *temp = reserve(loc_size);
+        T *temp = reserve_(loc_size);
 
         for (int i = 0; i < i_pos; ++i)
             temp[i] = array_m[i];
@@ -452,7 +457,7 @@ void vector<T>::insert(T data, iterator pos, int count)
             push_front(data);
     else if (curr_end_pos + count >= loc_size)
     {
-        T *temp = reserve(loc_size * 2 + count);
+        T *temp = reserve_(loc_size * 2 + count);
 
         for (int i = 0; i < i_pos; ++i)
             temp[i] = array_m[i];
@@ -470,7 +475,7 @@ void vector<T>::insert(T data, iterator pos, int count)
     }
     else
     {
-        T *temp = reserve(loc_size);
+        T *temp = reserve_(loc_size);
 
         for (int i = 0; i < i_pos; ++i)
             temp[i] = array_m[i];
@@ -505,7 +510,7 @@ void vector<T>::insert(T data, const_iterator pos, int count)
             push_front(data);
     else if (curr_end_pos + count >= loc_size)
     {
-        T *temp = reserve(loc_size * 2 + count);
+        T *temp = reserve_(loc_size * 2 + count);
 
         for (int i = 0; i < i_pos; ++i)
             temp[i] = array_m[i];
@@ -523,7 +528,7 @@ void vector<T>::insert(T data, const_iterator pos, int count)
     }
     else
     {
-        T *temp = reserve(loc_size);
+        T *temp = reserve_(loc_size);
 
         for (int i = 0; i < i_pos; ++i)
             temp[i] = array_m[i];
@@ -562,7 +567,7 @@ void vector<T>::insert(vector<T> &data, iterator pos)
         while (curr_end_pos + data.size() >= loc_size)
             loc_size *= 2;
 
-        T *temp = reserve(loc_size);
+        T *temp = reserve_(loc_size);
 
         for (int i = 0; i < i_pos; ++i)
             temp[i] = array_m[i];
@@ -579,7 +584,7 @@ void vector<T>::insert(vector<T> &data, iterator pos)
     }
     else
     {
-        T *temp = reserve(loc_size);
+        T *temp = reserve_(loc_size);
 
         for (int i = 0; i < i_pos; ++i)
             temp[i] = array_m[i];
@@ -617,7 +622,7 @@ void vector<T>::insert(vector<T> &data, const_iterator pos)
         while (curr_end_pos + data.size() >= loc_size)
             loc_size *= 2;
 
-        T *temp = reserve(loc_size);
+        T *temp = reserve_(loc_size);
 
         for (int i = 0; i < i_pos; ++i)
             temp[i] = array_m[i];
@@ -634,7 +639,7 @@ void vector<T>::insert(vector<T> &data, const_iterator pos)
     }
     else
     {
-        T *temp = reserve(loc_size);
+        T *temp = reserve_(loc_size);
 
         for (int i = 0; i < i_pos; ++i)
             temp[i] = array_m[i];
@@ -688,7 +693,7 @@ void vector<T>::insert(iterator pos, iterator secfpos, iterator seclpos)
     }
     else if (curr_end_pos + sec_size >= loc_size)
     {
-        T *temp = reserve(loc_size * 2);
+        T *temp = reserve_(loc_size * 2);
 
         for (int i = 0; i < i_pos; ++i)
             temp[i] = array_m[i];
@@ -755,7 +760,7 @@ void vector<T>::insert(const_iterator pos, iterator secfpos, iterator seclpos)
     }
     else if (curr_end_pos + sec_size >= loc_size)
     {
-        T *temp = reserve(loc_size * 2);
+        T *temp = reserve_(loc_size * 2);
 
         for (int i = 0; i < i_pos; ++i)
             temp[i] = array_m[i];
@@ -853,10 +858,14 @@ template <typename T>
 void vector<T>::assign(int count, T data)
 {
     free(array_m);
-    array_m = reserve(count);
+    T *temp = (T *)malloc(sizeof(T) * count);
+    array_m = temp;
 
-    for (int i = 0; i < count; ++i)
-        array_m[i] = data;
+    for (; temp != array_m + count; ++temp)
+    {
+        new (temp) T();
+        *temp = data;
+    }
 
     loc_size = count;
     curr_end_pos = count;
@@ -878,31 +887,28 @@ void vector<T>::assign(iterator fpos, iterator lpos)
 template <typename T>
 void vector<T>::resize(int new_size)
 {
-    if (new_size != curr_end_pos)
+    if (new_size > loc_size)
     {
-        if (new_size > loc_size)
-        {
-            T *temp = reserve(new_size);
+        T *temp = reserve_(new_size);
 
-            for (int i = 0; i < curr_end_pos; ++i)
-                temp[i] = array_m[i];
+        for (int i = 0; i < curr_end_pos; ++i)
+            temp[i] = array_m[i];
 
-            for (int i = curr_end_pos; i < new_size; ++i)
-                temp[i] = {};
+        for (int i = curr_end_pos; i < new_size; ++i)
+            temp[i] = {};
 
-            free(array_m);
-            array_m = temp;
-        }
-        else if (new_size > curr_end_pos && new_size < loc_size)
-        {
-            for (int i = curr_end_pos; i < new_size; ++i)
-                array_m[i] = {};
-
-            curr_end_pos = new_size;
-        }
+        free(array_m);
+        array_m = temp;
         loc_size = new_size;
+    }
+    else if (new_size > curr_end_pos && new_size < loc_size)
+    {
+        for (int i = curr_end_pos; i < new_size; ++i)
+            array_m[i] = {};
+
         curr_end_pos = new_size;
     }
+    curr_end_pos = new_size;
 }
 
 template <typename T>
@@ -914,13 +920,13 @@ void vector<T>::pop_back()
 template <typename T>
 void vector<T>::pop_front()
 {
-    T *temp = reserve(curr_end_pos - 1);
+    --curr_end_pos;
+    T *temp = reserve_(curr_end_pos);
 
-    for (int i = 0; i < curr_end_pos - 1; ++i)
+    for (int i = 0; i < curr_end_pos; ++i)
         temp[i] = array_m[i + 1];
 
     free(array_m);
-    --curr_end_pos;
     loc_size = curr_end_pos;
     array_m = temp;
 }
@@ -997,7 +1003,7 @@ void vector<T>::erase(iterator fpos, iterator lpos)
 template <typename T>
 void vector<T>::removeAt(int pos)
 {
-    T *temp = reserve(loc_size);
+    T *temp = reserve_(loc_size);
 
     for (int i = 0; i < pos; ++i)
         temp[i] = array_m[i];
@@ -1014,7 +1020,7 @@ template <typename T>
 void vector<T>::clear()
 {
     while (curr_end_pos)
-        pop_front();
+        pop_back();
 }
 
 template <typename T>
@@ -1022,7 +1028,7 @@ void vector<T>::operator=(vector<T> &data)
 {
     free(array_m);
 
-    array_m = reserve(data.size());
+    array_m = reserve_(data.size());
 
     for (int i = 0; i < data.size(); ++i)
         array_m[i] = data[i];
@@ -1032,12 +1038,12 @@ void vector<T>::operator=(vector<T> &data)
 }
 
 template <typename T>
-T *vector<T>::reserve(int Size)
+T *vector<T>::reserve_(int Size)
 {
     T *temp = (T *)malloc(sizeof(T) * Size);
     T *bffr = temp;
 
-    for (int i = 0; i < Size; ++i, ++temp)
+    for (; temp != bffr + Size; ++temp)
         new (temp) T();
 
     return bffr;
